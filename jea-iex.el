@@ -112,7 +112,7 @@
   (let ((clean-line (strip-ansi-chars line)))
     ;; (message (format "line is: \"%s\"." clean-line))
     (cond
-     ((string-prefix-p "[warning]" clean-line) "[W]\n")
+     ((string-prefix-p "[warning]" clean-line) "")
      (t
       line))))
 
