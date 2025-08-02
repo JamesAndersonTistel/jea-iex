@@ -85,7 +85,7 @@
   ;; this makes it so commands like M-{ and M-} work.
   (set (make-local-variable 'paragraph-separate) "\\'")
   (set (make-local-variable 'font-lock-defaults) '(jea-iex-font-lock-keywords t))
-	(set (make-local-variable 'comint-preoutput-filter-functions) jea-iex-filter-line)
+  (set (make-local-variable 'comint-preoutput-filter-functions) jea-iex-filter-line)
   (set (make-local-variable 'paragraph-start) jea-iex-prompt-regexp))
 
 (add-hook 'jea-iex-mode-hook 'jea-iex--initialize)
@@ -103,9 +103,9 @@
 (defun jea-iex-filter-line-process (line)
 	"Process LINE to remove unwanted output."
 	;; (message (format "line is: \"%s\"." line))
-	(cond
-	 ((string-prefix-p "[warning]" line) "")
-	 (t
-		line)))
+  (cond
+   ((string-prefix-p "[warning]" line) "")
+   (t
+    line)))
 
 ;;; jea-iex.el ends here
