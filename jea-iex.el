@@ -32,7 +32,7 @@
 (defvar jea-iex-cli-file-path "iex"
 	"Path to iex program.  This assumes its on the PATH, if not, set to full path.")
 
-(defvar jea-iex-cli-arguments '()
+(defvar jea-iex-cli-arguments '("-S" "mix" "phx.server")
 	"Command line arguments to iex.")
 
 (defvar jea-iex-mode-map
@@ -69,11 +69,11 @@
       (pop-to-buffer buffer))))
 
 (defun jea-iex--initialize ()
-  "Helper function to initialize jea-Iex."
+  "Helper function to initialize jea-iex."
   (setq comint-process-echoes t)
   (setq comint-use-prompt-regexp t))
 
-(define-derived-mode jea-iex-mode comint-mode "jea-Iex"
+(define-derived-mode jea-iex-mode comint-mode "jea-iex"
   "Major mode for `run-jea-iex'.
 
 \\<jea-iex-mode-map>"
@@ -86,6 +86,7 @@
   (set (make-local-variable 'paragraph-separate) "\\'")
   (set (make-local-variable 'font-lock-defaults) '(jea-iex-font-lock-keywords t))
   (set (make-local-variable 'comint-preoutput-filter-functions) jea-iex-filter-line)
+  (set (make-local-variable 'comint-prompt-read-only) nil)
   (set (make-local-variable 'paragraph-start) jea-iex-prompt-regexp))
 
 (add-hook 'jea-iex-mode-hook 'jea-iex--initialize)
@@ -100,12 +101,19 @@
    `(,(concat "\\_<" (regexp-opt jea-iex-keywords) "\\_>") . font-lock-keyword-face))
   "Additional expressions to highlight in `jea-iex-mode'.")
 
+(defun strip-ansi-chars (str)
+  "Strips ANSI escape sequences from STR."
+  (let ((clean-str (ansi-color-apply str)))
+    (set-text-properties 0 (length clean-str) nil clean-str)
+    clean-str))
+
 (defun jea-iex-filter-line-process (line)
-	"Process LINE to remove unwanted output."
-	;; (message (format "line is: \"%s\"." line))
-  (cond
-   ((string-prefix-p "[warning]" line) "")
-   (t
-    line)))
+	"Process LINE to remove unwanted output.  Should probably be a var."
+  (let ((clean-line (strip-ansi-chars line)))
+    ;; (message (format "line is: \"%s\"." clean-line))
+    (cond
+     ((string-prefix-p "[warning]" clean-line) "[W]\n")
+     (t
+      line))))
 
 ;;; jea-iex.el ends here
