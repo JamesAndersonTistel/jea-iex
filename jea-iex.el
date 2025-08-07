@@ -25,6 +25,8 @@
 ;;; interactive use difficult, lets add the option to filter some of
 ;;; them out. based on:
 ;;; https://www.masteringemacs.org/article/comint-writing-command-interpreter
+;;;
+;;; issues, seems to start in the wrong dir sometimes
 
 ;;; Code:
 (require 'comint)
@@ -32,7 +34,7 @@
 (defvar jea-iex-cli-file-path "iex"
 	"Path to iex program.  This assumes its on the PATH, if not, set to full path.")
 
-(defvar jea-iex-cli-arguments '("-S" "mix" "phx.server")
+(defvar jea-iex-cli-arguments '("--dbg" "pry" "-S" "mix" "phx.server")
 	"Command line arguments to iex.")
 
 (defvar jea-iex-mode-map
@@ -44,17 +46,15 @@
 (defvar jea-iex-prompt-regexp "^iex\\([0-9]+\\)>"
   "Prompt for `run-cassandra'.")
 
-(defvar jea-iex-buffer-name "*jea-iex*"
-  "Name of the buffer to use for the `run-jea-iex' comint instance.")
-
 (defvar jea-iex-filter-line '(jea-iex-filter-line-process)
 	"Function used to filter out unwanted output lines.")
 
-(defun run-jea-iex ()
-  "Run an inferior instance of `jea-iex-cli' inside Emacs."
-  (interactive)
+(defun run-jea-iex (arg buffer-name)
+  "Run an inferior instance of `jea-iex-cli' inside Emacs named BUFFER-NAME.
+ARG is prefix."
+  (interactive "p\nsproject name: ")
   (let* ((jea-iex-program jea-iex-cli-file-path)
-         (buffer (get-buffer-create jea-iex-buffer-name))
+         (buffer (get-buffer-create (concat "*jea-iex-" buffer-name "*")))
          (proc-alive (comint-check-proc buffer))
          (process (get-buffer-process buffer)))
     ;; if the process is dead then re-create the process and reset the
@@ -113,6 +113,7 @@
     ;; (message (format "line is: \"%s\"." clean-line))
     (cond
      ((string-prefix-p "[warning]" clean-line) "")
+     ((string-prefix-p "[error]" clean-line) "")
      (t
       line))))
 
