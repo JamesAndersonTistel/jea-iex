@@ -23,7 +23,12 @@
 
 ;;; When iex is really active it can have lots of warnings that make
 ;;; interactive use difficult, lets add the option to filter some of
-;;; them out. based on:
+;;; them out.
+;;;
+;;; in the mode you can call `jea-iex-cli-filter-on-toggle` or hit F5 to
+;;; toggle on/off the filter.
+;;;
+;;; based on:
 ;;; https://www.masteringemacs.org/article/comint-writing-command-interpreter
 ;;;
 
@@ -36,9 +41,18 @@
 (defvar jea-iex-cli-arguments '("--dbg" "pry" "-S" "mix" "phx.server")
 	"Command line arguments to iex.")
 
+(defvar jea-iex-cli-filter-on-p t
+	"Toggle the filter on and off.")
+
+(defun jea-iex-cli-filter-on-toggle()
+	"Toggle on/off the filter because filter can be too aggressive."
+	(interactive)
+	(setq jea-iex-cli-filter-on-p (not jea-iex-cli-filter-on-p)))
+
 (defvar jea-iex-mode-map
 	(let ((map (nconc (make-sparse-keymap) comint-mode-map)))
     (define-key map "\t" 'completion-at-point)
+		(define-key map [(f5)] 'jea-iex-cli-filter-on-toggle)
     map)
   "Basic mode map for `jea-iex'.")
 
@@ -110,9 +124,14 @@ ARG is prefix."
 	"Process LINE to remove unwanted output.  Should probably be a var."
   (let ((clean-line (strip-ansi-chars line)))
     ;; (message (format "line is: \"%s\"." clean-line))
-    (cond
-		 ((string-match "iex([0-9]+)>" line) line)
-     (t
-      ""))))
+		(cond
+		 (jea-iex-cli-filter-on-p
+			(cond
+			 ((string-match "iex([0-9]+)>" line) line)
+			 ((string-match "...([0-9]+)>" line) line)
+			 (t
+				"")))
+		 (t
+			line))))
 
 ;;; jea-iex.el ends here
