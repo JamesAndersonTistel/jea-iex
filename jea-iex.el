@@ -112,9 +112,8 @@ ARG is prefix."
   (let ((clean-line (strip-ansi-chars line)))
     ;; (message (format "line is: \"%s\"." clean-line))
     (cond
-     ((string-prefix-p "[warning]" clean-line) "")
-     ((string-prefix-p "[error]" clean-line) "")
+		 ((string-match "iex([0-9]+)>" line) line)
      (t
-      line))))
+      ""))))
 
 ;;; jea-iex.el ends here
