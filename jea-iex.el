@@ -26,7 +26,6 @@
 ;;; them out. based on:
 ;;; https://www.masteringemacs.org/article/comint-writing-command-interpreter
 ;;;
-;;; issues, seems to start in the wrong dir sometimes
 
 ;;; Code:
 (require 'comint)
