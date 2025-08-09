@@ -140,7 +140,7 @@ ARG is prefix."
 (defun jea-iex-filter--line-process-warnings_and_errors (line)
 	"Filter out some LINE if it matchines a prefix."
 	(cond
-	 ((string-prefix-p "[warning]" line) "")
+	 ((string-prefix-p "[warning]" line) "") ;; TODO make this into a filter list
 	 ((string-prefix-p "[error]" line) "")
 	 (t
 		line)))
@@ -148,7 +148,7 @@ ARG is prefix."
 (defun jea-iex-filter--line-process-all-prints (line)
 	"Filter out some LINE if it matchines a prefix."
 	(cond
-	 ((string-prefix-p "[warning]" line) "")
+	 ((string-prefix-p "[warning]" line) "") ;; TODO make this into a filter list
 	 ((string-prefix-p "[error]" line) "")
 	 ((string-prefix-p "[info]" line) "")
 	 (t
