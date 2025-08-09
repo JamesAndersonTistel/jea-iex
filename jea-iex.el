@@ -41,17 +41,34 @@
 (defvar jea-iex-cli-arguments '("--dbg" "pry" "-S" "mix" "phx.server")
 	"Command line arguments to iex.")
 
-(defvar jea-iex-cli-filter-on-p t
-	"Toggle the filter on and off.")
+(defvar jea-iex-cli-filter-state "off"
+	"Toggle which lines of text are filtered out of the `iex` output.
+
+Can be one of: off, warnings_and_errors or all_prints.")
+
+(defun jea-iex-cli-filter--get-next-state (current)
+	"Simple state machine transition table from the CURRENT state."
+	(cond
+	 ((string-equal current "off") "warnings_and_errors")
+	 ((string-equal current "warnings_and_errors") "all_prints")
+	 ((string-equal current "all_prints") "off")
+	 (t "off")))
+
+(defun jea-iex-cli-filter--goto-next-state ()
+	"Here we actually do the state transition for the filter."
+	(let ((prev jea-iex-cli-filter-state)
+				(next (jea-iex-cli-filter--get-next-state jea-iex-cli-filter-state)))
+		(setq jea-iex-cli-filter-state next)
+		(message "jea-filter state change from %s to %s." prev next)))
 
 (defun jea-iex-cli-filter-on-toggle()
 	"Toggle on/off the filter because filter can be too aggressive."
 	(interactive)
-	(setq jea-iex-cli-filter-on-p (not jea-iex-cli-filter-on-p)))
+	(jea-iex-cli-filter--goto-next-state))
 
 (defvar jea-iex-mode-map
 	(let ((map (nconc (make-sparse-keymap) comint-mode-map)))
-    (define-key map "\t" 'completion-at-point)
+    (define-key map "\t" 'completion-at-point)  ;; TODO: grab the `binding` output of the var in the context
 		(define-key map [(f5)] 'jea-iex-cli-filter-on-toggle)
     map)
   "Basic mode map for `jea-iex'.")
@@ -120,17 +137,33 @@ ARG is prefix."
     (set-text-properties 0 (length clean-str) nil clean-str)
     clean-str))
 
+(defun jea-iex-filter--line-process-warnings_and_errors (line)
+	"Filter out some LINE if it matchines a prefix."
+	(cond
+	 ((string-prefix-p "[warning]" line) "")
+	 ((string-prefix-p "[error]" line) "")
+	 (t
+		line)))
+
+(defun jea-iex-filter--line-process-all-prints (line)
+	"Filter out some LINE if it matchines a prefix."
+	(cond
+	 ((string-prefix-p "[warning]" line) "")
+	 ((string-prefix-p "[error]" line) "")
+	 ((string-prefix-p "[info]" line) "")
+	 (t
+		line)))
+
 (defun jea-iex-filter-line-process (line)
 	"Process LINE to remove unwanted output.  Should probably be a var."
   (let ((clean-line (strip-ansi-chars line)))
-    ;; (message (format "line is: \"%s\"." clean-line))
 		(cond
-		 (jea-iex-cli-filter-on-p
-			(cond
-			 ((string-match "iex([0-9]+)>" line) line)
-			 ((string-match "...([0-9]+)>" line) line)
-			 (t
-				"")))
+		 ((string-equal jea-iex-cli-filter-state "off")
+			line)
+		 ((string-equal jea-iex-cli-filter-state "warnings_and_errors")
+			(jea-iex-filter--line-process-warnings_and_errors line))
+		 ((string-equal jea-iex-cli-filter-state "all_prints")
+			(jea-iex-filter--line-process-all-prints line))
 		 (t
 			line))))
 
